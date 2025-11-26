@@ -25,6 +25,24 @@ strcpy(char *s, const char *t)
   return os;
 }
 
+void
+strcat_inplace(char *s, const char *t)
+{
+
+  while(*s){
+    s++;
+  }
+
+  while(*t){
+    *s=*t;
+    s++;
+    t++;
+  }
+
+  *s=0;
+
+
+}
 int
 strcmp(const char *p, const char *q)
 {

@@ -4,7 +4,6 @@
 #include "user/user.h"
 #include "kernel/fcntl.h"
 
-
 char* fmtname(char *path)
 {
   static char buff[DIRSIZ+1];
@@ -24,6 +23,8 @@ char* fmtname(char *path)
 }
 
 
+void strcat_inplace(char *s, const char *t);
+
 void find(char* Query,char* path){
   char buff[512],*Name;
   int fd ; //file descripitor
@@ -42,11 +43,22 @@ void find(char* Query,char* path){
   }
 
   if(Stat.type == T_DEVICE || Stat.type == T_FILE){
-      printf("%s %d %d %d",fmtname(path),Stat.type,Stat.ino,(int)Stat.size);
+    char NameBuf[DIRSIZ+1];
+    memmove(NameBuf,fmtname(path),DIRSIZ);
+    NameBuf[DIRSIZ]=0;
+
+    if (strcmp(NameBuf,Query)==0){
+      printf("File found at :%s",path);
+    }
+    close(fd);
+    return;
   }
+
   if(Stat.type == T_DIR){
     if( strlen(path) + 1 +DIRSIZ+1 > sizeof buff ){
       printf("Path is too long\n");
+      close(fd);
+      return ;
     }
 
     strcpy(buff,path);
@@ -54,30 +66,47 @@ void find(char* Query,char* path){
     *Name++ ='/';
 
     while(read(fd, &directEntry, sizeof(directEntry)) == sizeof(directEntry)){
+
+
       if(directEntry.inum == 0)
         continue;
-      memmove(Name, directEntry.name, DIRSIZ);
-      Name[DIRSIZ] = 0; //Null termination
+      //Assign ChildDir value using a new Buffer that is nullterminated
+      char ChildDirBuf[DIRSIZ+1];
+      memmove(ChildDirBuf,directEntry.name,DIRSIZ);
+      ChildDirBuf[DIRSIZ]=0;
 
-      if(strcmp(Name,Query)==0){
-        printf("File found at %s %d %d %d",fmtname(path),Stat.type,Stat.ino);
+
+      if(!strcmp(ChildDirBuf,".") || !strcmp(ChildDirBuf,".."))
+        continue;
+
+
+      char NewPath[512];
+      strcpy(NewPath,buff);
+
+      if(strlen(buff)+ strlen(ChildDirBuf) >= sizeof(NewPath)){
+        printf("Path too long\n");
+        continue;
       }
 
-  }
+      strcat_inplace(NewPath,ChildDirBuf);
 
+      find(Query,NewPath);
+
+    }
   }
+  printf("failed to find the file\n");
+  close(fd);
 }
 
 int main(int argc ,char* argv[]){
 
   if (argc < 3 ){
     printf("Invalid Usage: You need to pass in the file you are looking for and which directory \n");
-    printf("An example of how to use is : find ls .");
+    printf("An example of how to use is : find .\n");
     exit(0);
   }
 
-  char* Query=argv[1];
-  char* Dir=argv[2];
+  find(argv[1],argv[2]);
 
-
+  return 0;
 }

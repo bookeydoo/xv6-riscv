@@ -1,9 +1,9 @@
 # ⭐ Quick Summary
 
 ## Important Terms
-dirent-> Directory entry
+**dirent-> Directory entry**
 
-stat->file attributes
+**stat->file attribute**
 
 
 ## System call Description
