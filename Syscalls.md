@@ -1,6 +1,12 @@
 # ⭐ Quick Summary
 
-# System call Description
+## Important Terms
+dirent-> Directory entry
+
+stat->file attributes
+
+
+## System call Description
 
 int fork() Create a process, return child’s PID.
 
