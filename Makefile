@@ -140,6 +140,7 @@ UPROGS=\
 	$U/_wc\
 	$U/_mysleep\
 	$U/_find\
+	$U/_touch\
 	$U/_zombie\
 
 fs.img: mkfs/mkfs README $(UPROGS)
