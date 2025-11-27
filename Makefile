@@ -142,6 +142,7 @@ UPROGS=\
 	$U/_find\
 	$U/_touch\
 	$U/_fact\
+	$U/_tail\
 	$U/_zombie\
 
 fs.img: mkfs/mkfs README $(UPROGS)
