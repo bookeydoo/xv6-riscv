@@ -1,3 +1,4 @@
+
 #include "kernel/types.h"
 #include "kernel/stat.h"
 #include "kernel/fs.h"
@@ -7,22 +8,13 @@
 
 //inital idea but unsure it would work correctly or needs malloc and i think doesn't work on xv6
 //get size and malloc a buffer of size =filesize-N or just preallocate a big enough buffer but may not have the read done properly
-void tail(char* filename,int N){
+void tail(int fd,int N){
 
   struct stat Stat;
   char Buf[512];
-  //offset is where to start printing
-  int ReadBytes,Offset;
-  int NoOfLines=0;
-  int PrintFlag=0;
+  int ReadBytes;
 
-
-  int fd=open(filename,0);
-
-  if(fd<0){
-    printf("tail:cannot open file\n");
-    return;
-  }
+  //char nullchr='\0';
 
   if(fstat(fd,&Stat) < 0){
     printf("tail: sth went wrong with tail\n");
@@ -41,37 +33,28 @@ void tail(char* filename,int N){
     return ;
   }
 
+  int iter=0;
 
-  int StartPoint=fileSize-512;
+  while(iter<SkippedBytes){
 
-  if(StartPoint<0)
-    StartPoint=0;
+    int toRead = SkippedBytes-iter;
 
-
-  while (StartPoint>=0){
-    close(fd);
-    read(fd,Buf,StartPoint);
-    ReadBytes=read(fd,Buf,sizeof(Buf));
-
-    for(int i=ReadBytes-1;i>=0;i--){
-      if(Buf[i] == '\n'){
-        NoOfLines++;
-      if(NoOfLines == N+1){
-        Offset=StartPoint+i+1;
-        StartPoint=-1; //to escape loop
-        break;
-      }
+    if(toRead>sizeof(Buf)){
+      toRead=sizeof(Buf);
     }
-  }
-  StartPoint-=512;
-}
 
-  //Printing
-  fd=open(filename,0);
-  read(fd,Buf,Offset);
-  while((ReadBytes=read(fd,Buf,sizeof(Buf)))>0)
+    ReadBytes=read(fd,Buf,toRead);
+
+    if(ReadBytes <= 0)
+       break;
+
+    iter+=ReadBytes;
+  }
+
+
+  while((ReadBytes=read(fd,Buf,sizeof(Buf)))>0){
       write(1,Buf,ReadBytes);
-  close(fd);
+  }
 
 
 
@@ -82,24 +65,30 @@ void tail(char* filename,int N){
 int main(int  argc,char* argv[])
 {
 
+  int fd=0;
 
   if (argc < 2){
     printf("Invalid Usage: Need to pass atleast a file\n");
     exit(1);
   }
 
+  if( (fd=open(argv[1],O_RDONLY) )< 0){
+    printf("tail:Couldn't Open file %s\n",argv[1]);
+    exit(1);
+  }
 
   if (argc == 2){
     printf("Running default tail\n");
-    tail(argv[1],5);
+    tail(fd,5);
     exit(1);
   }
 
 
   else{
-    tail(argv[1],atoi(argv[2]));
+    tail(fd,atoi(argv[2]));
   }
 
 
+  close(fd);
   return 0;
 }
