@@ -7,76 +7,91 @@
 
 //inital idea but unsure it would work correctly or needs malloc and i think doesn't work on xv6
 //get size and malloc a buffer of size =filesize-N or just preallocate a big enough buffer but may not have the read done properly
-void tail(char* filename,int N){
+void tail(char* filename, int N) {
 
   struct stat Stat;
   char Buf[512];
-  //offset is where to start printing
-  int ReadBytes,Offset;
-  int NoOfLines=0;
-  int PrintFlag=0;
+  int ReadBytes, Offset = 0;
+  int NoOfLines = 0;
+  int PrintFlag = 0;
 
-
-  int fd=open(filename,0);
-
-  if(fd<0){
-    printf("tail:cannot open file\n");
+  int fd = open(filename, 0);
+  if(fd < 0){
+    printf("tail: cannot open file\n");
     return;
   }
 
-  if(fstat(fd,&Stat) < 0){
-    printf("tail: sth went wrong with tail\n");
-    exit(1);
+  if(fstat(fd, &Stat) < 0){
+    printf("tail: cannot stat file\n");
+    close(fd);
+    return;
   }
 
-  int fileSize=Stat.size;
+  int fileSize = Stat.size;
 
-  int SkippedBytes=fileSize-N;
-
+  // if file fits entirely, print all
   if (fileSize <= N){
-    while((ReadBytes=read(fd,Buf,512)) >0){
-      write(1,Buf,ReadBytes);
+    while((ReadBytes = read(fd, Buf, sizeof(Buf))) > 0){
+      write(1, Buf, ReadBytes);
+    }
+    close(fd);
+    return;
+  }
+
+  int StartPoint = fileSize - sizeof(Buf);
+  if(StartPoint < 0)
+    StartPoint = 0;
+
+  while (StartPoint >= 0) {
+
+    close(fd);
+    fd = open(filename, 0);
+
+    // skip to StartPoint
+    int skip = StartPoint;
+    while(skip > 0) {
+      int chunk = skip > sizeof(Buf) ? sizeof(Buf) : skip;
+      read(fd, Buf, chunk);
+      skip -= chunk;
     }
 
-    return ;
-  }
+    // read chunk
+    ReadBytes = read(fd, Buf, sizeof(Buf));
 
-
-  int StartPoint=fileSize-512;
-
-  if(StartPoint<0)
-    StartPoint=0;
-
-
-  while (StartPoint>=0){
-    close(fd);
-    read(fd,Buf,StartPoint);
-    ReadBytes=read(fd,Buf,sizeof(Buf));
-
-    for(int i=ReadBytes-1;i>=0;i--){
-      if(Buf[i] == '\n'){
+    // scan backwards inside this chunk
+    for(int i = ReadBytes - 1; i >= 0; i--) {
+      if(Buf[i] == '\n') {
         NoOfLines++;
-      if(NoOfLines == N+1){
-        Offset=StartPoint+i+1;
-        StartPoint=-1; //to escape loop
-        break;
+        if(NoOfLines == N + 1) {
+          Offset = StartPoint + i + 1;
+          PrintFlag = 1;
+          break;
+        }
       }
     }
+
+    if(PrintFlag)
+        break;
+
+    StartPoint -= sizeof(Buf);
   }
-  StartPoint-=512;
-}
 
-  //Printing
-  fd=open(filename,0);
-  read(fd,Buf,Offset);
-  while((ReadBytes=read(fd,Buf,sizeof(Buf)))>0)
-      write(1,Buf,ReadBytes);
+  // print output from Offset
   close(fd);
+  fd = open(filename, 0);
 
+  // skip Offset bytes
+  int skip2 = Offset;
+  while(skip2 > 0) {
+    int chunk = skip2 > sizeof(Buf) ? sizeof(Buf) : skip2;
+    read(fd, Buf, chunk);
+    skip2 -= chunk;
+  }
 
+  while((ReadBytes = read(fd, Buf, sizeof(Buf))) > 0)
+    write(1, Buf, ReadBytes);
 
-  return ;
-
+  close(fd);
 }
 
 int main(int  argc,char* argv[])
