@@ -6,6 +6,8 @@
 #include "spinlock.h"
 #include "proc.h"
 
+int getptable(int nproc,char* buffer);
+
 uint64
 sys_exit(void)
 {
@@ -118,4 +120,17 @@ sys_myrand(void)
   return val;
 
 
+}
+
+int
+sys_getptable(void)
+{
+    int n;
+    uint64 buf; // user-space pointer
+
+    argint(0, &n); // get nproc
+
+    argaddr(1, &buf);
+
+    return getptable(n, (char *)buf);
 }

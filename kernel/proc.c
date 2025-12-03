@@ -10,6 +10,10 @@ struct cpu cpus[NCPU];
 
 struct proc proc[NPROC];
 
+struct uproc ptable_buffer[NPROC];
+
+int ptable_len=0;
+
 struct proc *initproc;
 
 int nextpid = 1;
@@ -33,7 +37,7 @@ void
 proc_mapstacks(pagetable_t kpgtbl)
 {
   struct proc *p;
-  
+
   for(p = proc; p < &proc[NPROC]; p++) {
     char *pa = kalloc();
     if(pa == 0)
@@ -48,7 +52,7 @@ void
 procinit(void)
 {
   struct proc *p;
-  
+
   initlock(&pid_lock, "nextpid");
   initlock(&wait_lock, "wait_lock");
   for(p = proc; p < &proc[NPROC]; p++) {
@@ -93,7 +97,7 @@ int
 allocpid()
 {
   int pid;
-  
+
   acquire(&pid_lock);
   pid = nextpid;
   nextpid = nextpid + 1;
@@ -236,7 +240,7 @@ userinit(void)
 
   p = allocproc();
   initproc = p;
-  
+
   // allocate one user page and copy initcode's instructions
   // and data into it.
   uvmfirst(p->pagetable, initcode, sizeof(initcode));
@@ -372,7 +376,7 @@ exit(int status)
 
   // Parent might be sleeping in wait().
   wakeup(p->parent);
-  
+
   acquire(&p->lock);
 
   p->xstate = status;
@@ -428,7 +432,7 @@ wait(uint64 addr)
       release(&wait_lock);
       return -1;
     }
-    
+
     // Wait for a child to exit.
     sleep(p, &wait_lock);  //DOC: wait-sleep
   }
@@ -548,7 +552,7 @@ void
 sleep(void *chan, struct spinlock *lk)
 {
   struct proc *p = myproc();
-  
+
   // Must acquire p->lock in order to
   // change p->state and then call sched.
   // Once we hold p->lock, we can be
@@ -627,7 +631,7 @@ int
 killed(struct proc *p)
 {
   int k;
-  
+
   acquire(&p->lock);
   k = p->killed;
   release(&p->lock);
@@ -692,4 +696,31 @@ procdump(void)
     printf("%d %s %s", p->pid, state, p->name);
     printf("\n");
   }
+}
+
+int getptable(int nproc, char *buffer) {
+    struct proc *p;
+    struct uproc Arr[nproc];
+    int count = 0;
+
+    if(nproc < 1) return 0;
+
+    for(p = proc; p < &proc[NPROC] && count < nproc; p++) {
+        acquire(&p->lock);
+        if(p->state != UNUSED) {
+            safestrcpy(Arr[count].name, p->name, sizeof(p->name));
+            Arr[count].pid = p->pid;
+            Arr[count].ppid = p->parent ? p->parent->pid : 0;
+            Arr[count].size = p->sz;
+            Arr[count].ProcessState = p->state;
+            count++;
+        }
+        release(&p->lock);
+    }
+
+    // Copy to user space only once, outside the loop
+    if(copyout(myproc()->pagetable, (uint64)buffer, (char *)Arr, count * sizeof(struct uproc)) < 0)
+        return 0;
+
+    return 1;
 }

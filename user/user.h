@@ -1,4 +1,17 @@
 struct stat;
+struct uproc;
+
+
+
+struct uproc {
+    int pid;
+    int ppid;
+    int ProcessState;
+    uint64 size;
+    char name[20];
+};
+
+
 
 // system calls
 int fork(void);
@@ -24,6 +37,7 @@ int sleep(int);
 int uptime(void);
 int kbdint(void);
 int myrand(void);
+int getptable(int nproc,char* buffer);
 
 // ulib.c
 int stat(const char*, struct stat*);

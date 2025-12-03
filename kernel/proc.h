@@ -105,3 +105,12 @@ struct proc {
   struct inode *cwd;           // Current directory
   char name[16];               // Process name (debugging)
 };
+
+
+struct uproc{
+  int pid;
+  int ppid;
+  int ProcessState;
+  uint64 size;
+  char name[20];
+};
