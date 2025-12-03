@@ -37,6 +37,7 @@ int sleep(int);
 int uptime(void);
 int kbdint(void);
 int myrand(void);
+int shutdown(void);
 int getptable(int nproc,char* buffer);
 
 // ulib.c

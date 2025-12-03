@@ -122,6 +122,16 @@ sys_myrand(void)
 
 }
 
+uint64
+sys_shutdown(void)
+{
+    volatile uint32 *poweroff = (uint32*)0x100000;
+
+    *poweroff = 0x5555;   // tell QEMU to exit
+
+    return 0; // never returns
+}
+
 int
 sys_getptable(void)
 {

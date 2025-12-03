@@ -39,3 +39,4 @@ entry("uptime");
 entry("kbdint");
 entry("myrand");
 entry("getptable");
+entry("shutdown");

@@ -105,6 +105,7 @@ extern uint64 sys_kbdint(void);
 extern uint64 sys_myrand(void);
 extern uint64 sys_close(void);
 extern uint64 sys_getptable(void);
+extern uint64 sys_shutdown(void);
 
 // An array mapping syscall numbers from syscall.h
 // to the function that handles the system call.
@@ -134,6 +135,7 @@ static uint64 (*syscalls[])(void) = {
 [SYS_kbdint]  sys_kbdint,
 [SYS_myrand]  sys_myrand,
 [SYS_getptable]  sys_getptable,
+[SYS_shutdown]  sys_shutdown,
 };
 
 void
