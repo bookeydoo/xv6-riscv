@@ -22,3 +22,4 @@
 #define SYS_mkdir  21
 #define SYS_close  22
 #define SYS_kbdint 23
+#define SYS_myrand   24

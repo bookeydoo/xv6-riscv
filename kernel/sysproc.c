@@ -98,3 +98,24 @@ sys_uptime(void)
   release(&tickslock);
   return xticks;
 }
+
+uint64
+sys_myrand(void)
+{
+  uint xticks;
+  uint a=166425;
+  uint m=1408576;
+  uint c=1013569;
+
+  acquire(&tickslock);
+  xticks = ticks;
+  release(&tickslock);
+
+  //equation is :Xn+1 =(a * Xn +c )mod m
+  //where x is the seed(time)
+  int val=(a*xticks+c) % m;
+
+  return val;
+
+
+}

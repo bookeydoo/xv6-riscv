@@ -146,6 +146,7 @@ UPROGS=\
 	$U/_tail\
 	$U/_bytetail\
 	$U/_zombie\
+	$U/_getrand\
 
 fs.img: mkfs/mkfs README $(UPROGS)
 	mkfs/mkfs fs.img README $(UPROGS)
