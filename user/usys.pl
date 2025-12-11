@@ -36,6 +36,7 @@ entry("getpid");
 entry("sbrk");
 entry("sleep");
 entry("uptime");
+entry("countsyscall");
 entry("kbdint");
 entry("myrand");
 entry("getptable");

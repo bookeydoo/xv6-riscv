@@ -35,6 +35,7 @@ int getpid(void);
 char* sbrk(int);
 int sleep(int);
 int uptime(void);
+int countsyscall(void);
 int kbdint(void);
 int myrand(void);
 int shutdown(void);
