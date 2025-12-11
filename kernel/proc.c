@@ -438,6 +438,32 @@ wait(uint64 addr)
   }
 }
 
+int sched_mode=SCHED_ROUND_ROBIN;
+struct proc* choose_next_process(){
+
+  struct proc *p=0;
+
+  if(sched_mode == SCHED_ROUND_ROBIN){
+    for(p=proc;p<&proc[NPROC];p++){
+      if(p->state == RUNNABLE){
+        return p;
+      }
+    }
+  }
+
+  else if(sched_mode == SCHED_FCFS){
+    //TODO
+    return p;
+  }
+
+  // add more else statements for each scheduler type
+  return 0;
+}
+
+
+
+
+
 // Per-CPU process scheduler.
 // Each CPU calls scheduler() after setting itself up.
 // Scheduler never returns.  It loops, doing:
@@ -459,12 +485,13 @@ scheduler(void)
     intr_on();
 
     int found = 0;
-    for(p = proc; p < &proc[NPROC]; p++) {
+
+    p = choose_next_process();
+
+    if(p != 0) {
       acquire(&p->lock);
-      if(p->state == RUNNABLE) {
-        // Switch to chosen process.  It is the process's job
-        // to release its lock and then reacquire it
-        // before jumping back to us.
+
+      if (p->state == RUNNABLE) {
         p->state = RUNNING;
         c->proc = p;
         swtch(&c->context, &p->context);

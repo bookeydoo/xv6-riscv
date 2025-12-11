@@ -155,6 +155,7 @@ UPROGS=\
 	$U/_getrand\
 	$U/_shutdown\
 	$U/_ps\
+	$U/_schedtest\
 
 fs.img: mkfs/mkfs README $(UPROGS)
 	mkfs/mkfs fs.img README $(UPROGS)

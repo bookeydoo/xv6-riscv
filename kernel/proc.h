@@ -81,6 +81,12 @@ struct trapframe {
 
 enum procstate { UNUSED, USED, SLEEPING, RUNNABLE, RUNNING, ZOMBIE };
 
+// schedular constants to set the scheduling mode
+#define SCHED_ROUND_ROBIN 0
+#define SCHED_FCFS        1
+
+extern int sched_mode;
+
 // Per-process state
 struct proc {
   struct spinlock lock;
