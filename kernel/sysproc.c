@@ -129,7 +129,7 @@ sys_shutdown(void)
 
     *poweroff = 0x5555;   // tell QEMU to exit
 
-    return 0; // never returns
+    return 0;
 }
 
 int
