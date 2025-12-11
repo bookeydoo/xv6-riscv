@@ -150,6 +150,9 @@ found:
   p->context.ra = (uint64)forkret;
   p->context.sp = p->kstack + PGSIZE;
 
+  p->creation_time=ticks;
+  p->run_time=0;
+
   return p;
 }
 
@@ -173,6 +176,8 @@ freeproc(struct proc *p)
   p->killed = 0;
   p->xstate = 0;
   p->state = UNUSED;
+  p->creation_time = ticks;
+  p->run_time = 0;
 }
 
 // Create a user page table for a given process, with no user memory,
@@ -460,6 +465,20 @@ struct proc* choose_next_process(){
   return 0;
 }
 
+
+void
+update_time()
+{
+   struct proc* p;
+  for (p = proc; p < &proc[NPROC]; p++) {
+    acquire(&p->lock);
+    if (p->state == RUNNING) {
+      p->run_time++;
+    }
+
+    release(&p->lock);
+  }
+}
 
 
 
