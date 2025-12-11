@@ -154,7 +154,7 @@ UPROGS=\
 	$U/_testcount\
 	$U/_getrand\
 	$U/_shutdown\
-	$U/_Getptable\
+	$U/_ps\
 
 fs.img: mkfs/mkfs README $(UPROGS)
 	mkfs/mkfs fs.img README $(UPROGS)
