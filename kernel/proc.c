@@ -152,6 +152,7 @@ found:
 
   p->creation_time=ticks;
   p->run_time=0;
+  p->priority=0;
 
   return p;
 }
@@ -178,6 +179,7 @@ freeproc(struct proc *p)
   p->state = UNUSED;
   p->creation_time = ticks;
   p->run_time = 0;
+  p->priority= 0;
 }
 
 // Create a user page table for a given process, with no user memory,
@@ -457,12 +459,66 @@ struct proc* choose_next_process(){
   }
 
   else if(sched_mode == SCHED_FCFS){
-    //TODO
-    return p;
+
+    struct proc *BestP=0;
+    for(p=proc+1;p<&proc[NPROC];p++){
+      if(p->state == RUNNABLE){
+        if(p->creation_time < BestP->creation_time || BestP==0){
+          BestP=p;
+        }
+      }
+    }
+    return BestP;
+  }
+  else if(sched_mode == SCHED_PBS){
+    //first loop to calculate priority for all
+    int maxPriority=0;
+    for(p=proc;p<&proc[NPROC];p++){
+      if(p->state == RUNNABLE){
+        p->priority=calc_priority(p);
+      }
+    }
+    //second loop to find the max priority
+    for(p=proc;p<&proc[NPROC];p++){
+      if(p->state == RUNNABLE){
+        if (p->priority > maxPriority){
+          maxPriority=p->priority;
+        }
+      }
+    }
+    //third loop to run that process
+    for(p=proc;p<&proc[NPROC];p++){
+      if(p->state == RUNNABLE && p->state >= maxPriority){
+            return p;
+      }
+    }
   }
 
   // add more else statements for each scheduler type
   return 0;
+}
+
+
+int
+calc_priority(struct proc* p)
+{
+
+  acquire(&p->lock);
+
+  int priority=0;
+
+  if(p->parent != 0){
+    priority++;
+  }
+  for (int i = 0; i < NOFILE; i++) {
+    if (p->ofile[i] != 0) {
+        priority++;
+        break;
+    }
+  }
+
+  release(&p->lock);
+  return priority;
 }
 
 

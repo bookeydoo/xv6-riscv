@@ -84,6 +84,7 @@ enum procstate { UNUSED, USED, SLEEPING, RUNNABLE, RUNNING, ZOMBIE };
 // schedular constants to set the scheduling mode
 #define SCHED_ROUND_ROBIN 0
 #define SCHED_FCFS        1
+#define SCHED_PBS         2
 
 extern int sched_mode;
 
@@ -112,6 +113,7 @@ struct proc {
   char name[16];               // Process name (debugging)
   uint creation_time;
   uint run_time;
+  int priority;
 };
 
 
