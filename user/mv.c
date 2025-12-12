@@ -5,10 +5,17 @@
 int
 main(int argc, char *argv[])
 {
-    if(argc != 3){
-        fprintf(2, "Usage: mv <source> <destination>\n");
-        exit(1);
+    // support help: '?' or '-?'
+    for (int i = 1; i < argc; i++) {
+        if (strcmp(argv[i], "?") == 0 || strcmp(argv[i], "-?") == 0) {
+            printf("mv: usage: mv <source> <destination>\n");
+            exit(0);
+        }
     }
+   // if(argc != 3){
+     //   fprintf(2, "Usage: mv <source> <destination>\n");
+       // exit(1);
+   // }
 
     char *src = argv[1];
     char *dst = argv[2];

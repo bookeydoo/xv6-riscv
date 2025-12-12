@@ -31,9 +31,12 @@ int readline(int fd, char *buf) {
 int
 main(int argc, char *argv[])
 {
-    if (argc != 3) {
-        fprintf(2, "Usage: diff <file1> <file2>\n");
-        exit(1);
+    // support help: '?' or '-?'
+    for (int i = 1; i < argc; i++) {
+        if (strcmp(argv[i], "?") == 0 || strcmp(argv[i], "-?") == 0) {
+            printf("diff: usage: diff <file1> <file2>\n");
+            exit(0);
+        }
     }
 
     int fd1 = open(argv[1], O_RDONLY);

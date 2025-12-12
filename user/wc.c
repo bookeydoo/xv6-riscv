@@ -74,6 +74,18 @@ main(int argc, char *argv[])
   int i;
   int show_l = 0, show_w = 0, show_c = 0, show_L = 0;
 
+  // help: support '?' or '-?'
+  for (i = 1; i < argc; i++) {
+    if (strcmp(argv[i], "?") == 0 || strcmp(argv[i], "-?") == 0) {
+      printf("wc: usage: wc [-lwcL] [file ...]\n");
+      printf("  -l  print newline counts\n");
+      printf("  -w  print word counts\n");
+      printf("  -c  print byte counts\n");
+      printf("  -L  print longest line length\n");
+      exit(0);
+    }
+  }
+
   // Parse flags first
   int arg_i = 1;
   for (; arg_i < argc && argv[arg_i][0] == '-'; arg_i++) {

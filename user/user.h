@@ -24,6 +24,18 @@ int sleep(int);
 int uptime(void);
 int countsyscall(void);
 
+struct rtcdate {
+  int year;
+  int month;
+  int day;
+  int hour;
+  int minute;
+  int second;
+};
+
+int datetime(struct rtcdate *);
+
+
 // ulib.c
 int stat(const char*, struct stat*);
 char* strcpy(char*, const char*);

@@ -147,6 +147,8 @@ UPROGS=\
 	$U/_cp\
 	$U/_diff\
 	$U/_testcount\
+	$U/_date\
+	$U/_uptime\
 
 
 fs.img: mkfs/mkfs README $(UPROGS)
