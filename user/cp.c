@@ -8,11 +8,18 @@ main(int argc, char *argv[])
 {
     char buf[512];
     int src_fd, dst_fd, n;
-
-    if(argc != 3){
-        fprintf(2, "Usage: cp <source> <destination>\n");
-        exit(1);
+    // support help: '?' or '-?'
+    for (int i = 1; i < argc; i++) {
+        if (strcmp(argv[i], "?") == 0 || strcmp(argv[i], "-?") == 0) {
+            printf("cp: usage: cp <source> <destination>\n");
+            exit(0);
+        }
     }
+
+   // if(argc != 3){
+       // fprintf(2, "Usage: cp <source> <destination>\n");
+     //   exit(1);
+   // }
 
     src_fd = open(argv[1], O_RDONLY);
     if(src_fd < 0){

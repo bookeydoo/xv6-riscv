@@ -43,6 +43,18 @@ int getptable(int nproc,char* buffer);
 int setsched(int);
 int GetMetrics(int* retime ,int* rutime, int* stime);
 
+struct rtcdate {
+  int year;
+  int month;
+  int day;
+  int hour;
+  int minute;
+  int second;
+};
+
+int datetime(struct rtcdate *);
+
+
 // ulib.c
 int stat(const char*, struct stat*);
 char* strcpy(char*, const char*);

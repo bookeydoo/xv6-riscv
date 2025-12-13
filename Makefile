@@ -157,6 +157,9 @@ UPROGS=\
 	$U/_ps\
 	$U/_schedtest\
 	$U/_setscheduler\
+	$U/_date\
+	$U/_uptime\
+
 
 fs.img: mkfs/mkfs README $(UPROGS)
 	mkfs/mkfs fs.img README $(UPROGS)

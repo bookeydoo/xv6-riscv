@@ -28,3 +28,4 @@
 #define SYS_countsyscall  27
 #define SYS_setsched  28
 #define SYS_GetMetrics 29
+#define SYS_datetime 30
