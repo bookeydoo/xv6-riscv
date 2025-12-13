@@ -136,6 +136,8 @@ found:
     return 0;
   }
 
+  memset(p->trapframe,0,sizeof(struct trapframe));
+
   // An empty user page table.
   p->pagetable = proc_pagetable(p);
   if(p->pagetable == 0){
@@ -177,7 +179,7 @@ freeproc(struct proc *p)
   p->killed = 0;
   p->xstate = 0;
   p->state = UNUSED;
-  p->creation_time = ticks;
+  p->creation_time = 0;
   p->run_time = 0;
   p->priority= 0;
 }
@@ -248,6 +250,9 @@ userinit(void)
   p = allocproc();
   initproc = p;
 
+  //debug
+  printf("userinit: initproc epc=0x%lx sp=0x%lx\n", p->trapframe->epc, p->trapframe->sp);
+
   // allocate one user page and copy initcode's instructions
   // and data into it.
   uvmfirst(p->pagetable, initcode, sizeof(initcode));
@@ -261,7 +266,6 @@ userinit(void)
   p->cwd = namei("/");
 
   p->state = RUNNABLE;
-
   release(&p->lock);
 }
 
@@ -331,8 +335,8 @@ fork(void)
 
   acquire(&np->lock);
   np->state = RUNNABLE;
+  printf("fork: child pid=%d epc=0x%lx sp=0x%lx\n", np->pid, np->trapframe->epc, np->trapframe->sp);
   release(&np->lock);
-
   return pid;
 }
 
@@ -445,14 +449,13 @@ wait(uint64 addr)
     sleep(p, &wait_lock);  //DOC: wait-sleep
   }
 }
-
 int
 getProcessMetrics(int *k_retime, int *k_rutime, int *k_stime)
 {
+    printf("starting processmetrics\n");
     struct proc *p;
     int havekids;
     struct proc *pp = myproc();
-    printf("starting processmetrics");
 
     acquire(&wait_lock);
     for(;;){
@@ -460,33 +463,23 @@ getProcessMetrics(int *k_retime, int *k_rutime, int *k_stime)
         for(p = proc; p < &proc[NPROC]; p++){
             if(p->parent != pp)
                 continue;
-
             havekids = 1;
 
-            // Acquire child lock before accessing its fields
             acquire(&p->lock);
 
-            if(p->state == RUNNING){
-              release(&p->lock);
-              continue;
-            }
             if(p->state == ZOMBIE){
                 *k_retime = (p->finish_time - p->creation_time) - p->run_time;
                 *k_rutime = p->run_time;
                 *k_stime  = p->finish_time;
-
                 int pid = p->pid;
 
-                // freeproc() modifies p, must hold p->lock
                 freeproc(p);
-
                 release(&p->lock);
                 release(&wait_lock);
                 return pid;
             }
-            printf("freeing pid=%d state=%d\n", p->pid, p->state);
-            freeproc(p);
-            release(&p->lock);
+
+            release(&p->lock);  // 🟢 Just release, don't free!
         }
 
         if(!havekids || pp->killed){
@@ -494,7 +487,7 @@ getProcessMetrics(int *k_retime, int *k_rutime, int *k_stime)
             return -1;
         }
 
-        sleep(pp, &wait_lock);  // reacquires wait_lock after wakeup
+        sleep(pp, &wait_lock);
     }
 }
 
@@ -536,7 +529,6 @@ struct proc* choose_next_process(){
       if(p->state == UNUSED)
         continue;
       if(p->state == RUNNABLE){
-          p->priority=calc_priority(p);
         if(p->priority > maxPriority)
            maxPriority=p->priority;
       }
@@ -592,6 +584,9 @@ update_time()
     acquire(&p->lock);
     if (p->state == RUNNING) {
       p->run_time++;
+    }
+   if(sched_mode == SCHED_PBS && p->state == RUNNABLE) {
+      p->priority = calc_priority(p);
     }
 
     release(&p->lock);
@@ -695,9 +690,11 @@ void
 forkret(void)
 {
   static int first = 1;
+  struct proc*p=myproc();
 
   // Still holding p->lock from scheduler.
-  release(&myproc()->lock);
+  release(&p->lock); // Use 'p' instead of myproc()->lock for clarity
+
 
   if (first) {
     // File system initialization must be run in the context of a
@@ -709,6 +706,7 @@ forkret(void)
     // ensure other cores see first=0.
     __sync_synchronize();
   }
+
 
   usertrapret();
 }

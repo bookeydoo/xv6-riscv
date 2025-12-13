@@ -41,7 +41,7 @@ int myrand(void);
 int shutdown(void);
 int getptable(int nproc,char* buffer);
 int setsched(int);
-int GetMetrics(int* retime ,int* rutime, int* stime);
+int GetMetrics(int* ,int* , int* );
 
 struct rtcdate {
   int year;

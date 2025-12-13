@@ -8,17 +8,20 @@ int main(int argc, char *argv[]) {
 
   int pid;
   int k, nprocess = 10;
-  int z, steps = 1000000;
+  int z, steps = 10000;
   char buffer_src[1024], buffer_dst[1024];
 
   uint total_turnaround=0;
   uint total_waiting=0;
 
+  printf("created vars");
 
   for (k = 0; k < nprocess; k++) {
     // ensure different creation times (proc->ctime)
     // needed for properly testing FCFS scheduling
     sleep(2);
+
+    printf("sleeping");
 
     pid = fork();
     if (pid < 0) {
@@ -41,6 +44,7 @@ int main(int argc, char *argv[]) {
   }
 
   for (k = 0; k < nprocess; k++) {
+    printf("should call getmetrics anytime");
     int retime,rutime,stime;
     pid=GetMetrics(&retime,&rutime,&stime);
     if(pid>0){

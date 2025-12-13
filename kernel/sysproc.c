@@ -164,21 +164,31 @@ sys_setsched(void)
 uint64
 sys_GetMetrics(void)
 {
-    uint64 u_retime, u_rutime, u_stime;
+    // Variables to hold the user-space addresses obtained from arguments
+    uint64 u_retime_addr;
+    uint64 u_rutime_addr;
+    uint64 u_stime_addr;
+
+    // Kernel variables to hold the metrics
     int k_retime, k_rutime, k_stime;
     struct proc *p = myproc();
 
-    argaddr(0, &u_retime) ;
-    argaddr(1, &u_rutime) ;
-    argaddr(2, &u_stime) ;
+    // 1. Get the user-space addresses. Since argaddr returns void,
+    //    we just call it. It places the argument value into the pointers.
+    argaddr(0, &u_retime_addr);
+    argaddr(1, &u_rutime_addr);
+    argaddr(2, &u_stime_addr);
 
+    // 2. Execute the kernel-side logic
     int pid = getProcessMetrics(&k_retime, &k_rutime, &k_stime);
     if (pid < 0)
         return -1;
 
-    if (copyout(p->pagetable, u_retime, (char*)&k_retime, sizeof(int)) < 0 ||
-        copyout(p->pagetable, u_rutime, (char*)&k_rutime, sizeof(int)) < 0 ||
-        copyout(p->pagetable, u_stime,  (char*)&k_stime,  sizeof(int)) < 0)
+    // 3. Copy the results back to the user's addresses.
+    //    We MUST check the return value of copyout, as it validates the address.
+    if (copyout(p->pagetable, u_retime_addr, (char*)&k_retime, sizeof(int)) < 0 ||
+        copyout(p->pagetable, u_rutime_addr, (char*)&k_rutime, sizeof(int)) < 0 ||
+        copyout(p->pagetable, u_stime_addr,  (char*)&k_stime,  sizeof(int)) < 0)
         return -1;
 
     return pid;

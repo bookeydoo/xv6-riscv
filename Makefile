@@ -155,10 +155,11 @@ UPROGS=\
 	$U/_getrand\
 	$U/_shutdown\
 	$U/_ps\
-	$U/_schedtest\
-	$U/_setscheduler\
 	$U/_date\
 	$U/_uptime\
+	$U/_setscheduler\
+	$U/_schedtest\
+	$U/_stsimple\
 
 
 fs.img: mkfs/mkfs README $(UPROGS)
