@@ -40,6 +40,7 @@ int kbdint(void);
 int myrand(void);
 int shutdown(void);
 int getptable(int nproc,char* buffer);
+int setsched(int);
 
 // ulib.c
 int stat(const char*, struct stat*);

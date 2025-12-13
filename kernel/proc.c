@@ -463,7 +463,7 @@ struct proc* choose_next_process(){
     struct proc *BestP=0;
     for(p=proc+1;p<&proc[NPROC];p++){
       if(p->state == RUNNABLE){
-        if(p->creation_time < BestP->creation_time || BestP==0){
+        if(BestP==0 || p->creation_time < BestP->creation_time){
           BestP=p;
         }
       }

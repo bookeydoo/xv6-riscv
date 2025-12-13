@@ -41,3 +41,4 @@ entry("kbdint");
 entry("myrand");
 entry("getptable");
 entry("shutdown");
+entry("setsched");
