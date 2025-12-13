@@ -164,15 +164,22 @@ sys_setsched(void)
 uint64
 sys_GetMetrics(void)
 {
-  uint64 retime_addr, rutime_addr, stime_addr;
+    uint64 u_retime, u_rutime, u_stime;
+    int k_retime, k_rutime, k_stime;
+    struct proc *p = myproc();
 
-  argaddr(0, &retime_addr) ;
-  argaddr(1, &rutime_addr);
-  argaddr(2, &stime_addr) ;
+    argaddr(0, &u_retime) ;
+    argaddr(1, &u_rutime) ;
+    argaddr(2, &u_stime) ;
 
-  int *retime = (int*)retime_addr;
-  int *rutime = (int*)rutime_addr;
-  int *stime  = (int*)stime_addr;
+    int pid = getProcessMetrics(&k_retime, &k_rutime, &k_stime);
+    if (pid < 0)
+        return -1;
 
-return getProcessMetrics(retime, rutime, stime);
+    if (copyout(p->pagetable, u_retime, (char*)&k_retime, sizeof(int)) < 0 ||
+        copyout(p->pagetable, u_rutime, (char*)&k_rutime, sizeof(int)) < 0 ||
+        copyout(p->pagetable, u_stime,  (char*)&k_stime,  sizeof(int)) < 0)
+        return -1;
+
+    return pid;
 }

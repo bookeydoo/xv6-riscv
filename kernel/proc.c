@@ -447,11 +447,12 @@ wait(uint64 addr)
 }
 
 int
-getProcessMetrics(int *retime,int *rutime,int* stime)
+getProcessMetrics(int *k_retime, int *k_rutime, int *k_stime)
 {
     struct proc *p;
     int havekids;
     struct proc *pp = myproc();
+    printf("starting processmetrics");
 
     acquire(&wait_lock);
     for(;;){
@@ -459,76 +460,95 @@ getProcessMetrics(int *retime,int *rutime,int* stime)
         for(p = proc; p < &proc[NPROC]; p++){
             if(p->parent != pp)
                 continue;
+
             havekids = 1;
+
+            // Acquire child lock before accessing its fields
+            acquire(&p->lock);
+
+            if(p->state == RUNNING){
+              release(&p->lock);
+              continue;
+            }
             if(p->state == ZOMBIE){
-                // found a zombie child
-                *retime = (p->finish_time- p->creation_time) - p->run_time; // waiting time
-                *rutime = p->run_time;
-                *stime  = p->finish_time;  // optional
+                *k_retime = (p->finish_time - p->creation_time) - p->run_time;
+                *k_rutime = p->run_time;
+                *k_stime  = p->finish_time;
+
                 int pid = p->pid;
+
+                // freeproc() modifies p, must hold p->lock
                 freeproc(p);
+
+                release(&p->lock);
                 release(&wait_lock);
                 return pid;
             }
+            printf("freeing pid=%d state=%d\n", p->pid, p->state);
+            freeproc(p);
+            release(&p->lock);
         }
 
-        // No zombie found
         if(!havekids || pp->killed){
             release(&wait_lock);
             return -1;
         }
 
-        sleep(pp, &wait_lock); // wait for child to exit
+        sleep(pp, &wait_lock);  // reacquires wait_lock after wakeup
     }
 }
 
-int sched_mode=SCHED_ROUND_ROBIN;
+int sched_mode= SCHED_FCFS;
 struct proc* choose_next_process(){
 
   struct proc *p=0;
 
   if(sched_mode == SCHED_ROUND_ROBIN){
     for(p=proc;p<&proc[NPROC];p++){
+      if(p->state == UNUSED)
+        continue;
       if(p->state == RUNNABLE){
         return p;
       }
     }
+    return 0;
   }
 
   else if(sched_mode == SCHED_FCFS){
 
     struct proc *BestP=0;
-    for(p=proc+1;p<&proc[NPROC];p++){
+    for(p=proc;p<&proc[NPROC];p++){
+      if(p->state == UNUSED)
+        continue;
       if(p->state == RUNNABLE){
         if(BestP==0 || p->creation_time < BestP->creation_time){
           BestP=p;
         }
-      }
+     }
     }
-    return BestP;
+   return BestP;
   }
-  else if(sched_mode == SCHED_PBS){
-    //first loop to calculate priority for all
-    int maxPriority=-1;
 
+  else if(sched_mode == SCHED_PBS){
+    int maxPriority=-1;
+    //first loop to calculate priority for all
     for(p=proc;p<&proc[NPROC];p++){
-      acquire(&p->lock);
+      if(p->state == UNUSED)
+        continue;
       if(p->state == RUNNABLE){
           p->priority=calc_priority(p);
         if(p->priority > maxPriority)
            maxPriority=p->priority;
       }
-      release(&p->lock);
     }
     //second loop to run that process
     for(p=proc;p<&proc[NPROC];p++){
-      acquire(&p->lock);
       if(p->state == RUNNABLE && p->priority >= maxPriority){
-          release(&p->lock);
+          printf("choose nextProcess: pid: %d, state:%d\n",p->pid,p->state);
           return p;
       }
-      release(&p->lock);
     }
+    return 0;
   }
 
   // add more else statements for each scheduler type
@@ -608,7 +628,10 @@ scheduler(void)
     if(p != 0) {
       acquire(&p->lock);
 
-      if (p->state == RUNNABLE) {
+      if (p->state != RUNNABLE) {
+        release(&p->lock);
+        continue;
+      }
         p->state = RUNNING;
         c->proc = p;
         swtch(&c->context, &p->context);
@@ -617,8 +640,8 @@ scheduler(void)
         // It should have changed its p->state before coming back.
         c->proc = 0;
         found = 1;
-      }
-      release(&p->lock);
+        release(&p->lock);
+
     }
     if(found == 0) {
       // nothing to run; stop running on this core until an interrupt.
