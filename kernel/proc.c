@@ -472,25 +472,24 @@ struct proc* choose_next_process(){
   }
   else if(sched_mode == SCHED_PBS){
     //first loop to calculate priority for all
-    int maxPriority=0;
+    int maxPriority=-1;
+
     for(p=proc;p<&proc[NPROC];p++){
+      acquire(&p->lock);
       if(p->state == RUNNABLE){
-        p->priority=calc_priority(p);
+          p->priority=calc_priority(p);
+        if(p->priority > maxPriority)
+           maxPriority=p->priority;
       }
+      release(&maxPriority);
     }
-    //second loop to find the max priority
+    //second loop to run that process
     for(p=proc;p<&proc[NPROC];p++){
-      if(p->state == RUNNABLE){
-        if (p->priority > maxPriority){
-          maxPriority=p->priority;
-        }
+      acquire(&p->lock);
+      if(p->state == RUNNABLE && p->priority >= maxPriority){
+          return p;
       }
-    }
-    //third loop to run that process
-    for(p=proc;p<&proc[NPROC];p++){
-      if(p->state == RUNNABLE && p->state >= maxPriority){
-            return p;
-      }
+      release(&maxPriority);
     }
   }
 
@@ -503,13 +502,14 @@ int
 calc_priority(struct proc* p)
 {
 
-  acquire(&p->lock);
 
   int priority=0;
 
-  if(p->parent != 0){
+
+  if(p->parent == 0){
     priority++;
   }
+
   for (int i = 0; i < NOFILE; i++) {
     if (p->ofile[i] != 0) {
         priority++;
@@ -517,7 +517,11 @@ calc_priority(struct proc* p)
     }
   }
 
-  release(&p->lock);
+  if(p->run_time > 5 ){
+    priority++;
+  }
+
+
   return priority;
 }
 
