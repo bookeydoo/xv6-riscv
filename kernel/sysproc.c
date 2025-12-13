@@ -144,3 +144,17 @@ sys_getptable(void)
 
     return getptable(n, (char *)buf);
 }
+
+uint64
+sys_setsched(void)
+{
+  int mode;
+  argint(0, &mode);
+
+  if (mode != SCHED_ROUND_ROBIN &&
+      mode != SCHED_FCFS)
+    return -1;
+
+  sched_mode = mode;
+  return 0;
+}

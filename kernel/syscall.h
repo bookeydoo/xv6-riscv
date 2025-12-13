@@ -26,3 +26,4 @@
 #define SYS_getptable 25
 #define SYS_shutdown 26
 #define SYS_countsyscall  27
+#define SYS_setsched  28

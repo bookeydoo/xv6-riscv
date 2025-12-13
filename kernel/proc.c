@@ -481,15 +481,16 @@ struct proc* choose_next_process(){
         if(p->priority > maxPriority)
            maxPriority=p->priority;
       }
-      release(&maxPriority);
+      release(&p->lock);
     }
     //second loop to run that process
     for(p=proc;p<&proc[NPROC];p++){
       acquire(&p->lock);
       if(p->state == RUNNABLE && p->priority >= maxPriority){
+          release(&p->lock);
           return p;
       }
-      release(&maxPriority);
+      release(&p->lock);
     }
   }
 
