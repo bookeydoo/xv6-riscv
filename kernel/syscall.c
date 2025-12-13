@@ -113,8 +113,6 @@ extern uint64 sys_setsched(void);
 extern uint64 sys_GetMetrics(void);
 extern uint64 sys_datetime(void);
 
-
-
 // An array mapping syscall numbers from syscall.h
 // to the function that handles the system call.
 static uint64 (*syscalls[])(void) = {
@@ -146,7 +144,6 @@ static uint64 (*syscalls[])(void) = {
 [SYS_shutdown]  sys_shutdown,
 [SYS_countsyscall] sys_countsyscall,
 [SYS_datetime] sys_datetime,
-
 [SYS_setsched] sys_setsched,
 [SYS_GetMetrics] sys_GetMetrics,
 
