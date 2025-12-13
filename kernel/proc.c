@@ -388,6 +388,7 @@ exit(int status)
 
   p->xstate = status;
   p->state = ZOMBIE;
+  p->finish_time=ticks;
 
   release(&wait_lock);
 
@@ -443,6 +444,42 @@ wait(uint64 addr)
     // Wait for a child to exit.
     sleep(p, &wait_lock);  //DOC: wait-sleep
   }
+}
+
+int
+getProcessMetrics(int *retime,int *rutime,int* stime)
+{
+    struct proc *p;
+    int havekids;
+    struct proc *pp = myproc();
+
+    acquire(&wait_lock);
+    for(;;){
+        havekids = 0;
+        for(p = proc; p < &proc[NPROC]; p++){
+            if(p->parent != pp)
+                continue;
+            havekids = 1;
+            if(p->state == ZOMBIE){
+                // found a zombie child
+                *retime = (p->finish_time- p->creation_time) - p->run_time; // waiting time
+                *rutime = p->run_time;
+                *stime  = p->finish_time;  // optional
+                int pid = p->pid;
+                freeproc(p);
+                release(&wait_lock);
+                return pid;
+            }
+        }
+
+        // No zombie found
+        if(!havekids || pp->killed){
+            release(&wait_lock);
+            return -1;
+        }
+
+        sleep(pp, &wait_lock); // wait for child to exit
+    }
 }
 
 int sched_mode=SCHED_ROUND_ROBIN;

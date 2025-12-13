@@ -11,6 +11,9 @@ int main(int argc, char *argv[]) {
   int z, steps = 1000000;
   char buffer_src[1024], buffer_dst[1024];
 
+  uint total_turnaround=0;
+  uint total_waiting=0;
+
 
   for (k = 0; k < nprocess; k++) {
     // ensure different creation times (proc->ctime)
@@ -38,9 +41,19 @@ int main(int argc, char *argv[]) {
   }
 
   for (k = 0; k < nprocess; k++) {
-    pid = wait(0);
-    printf("[pid=%d] terminated\n", pid);
+    int retime,rutime,stime;
+    pid=GetMetrics(&retime,&rutime,&stime);
+    if(pid>0){
+      uint Tat=retime+rutime+stime;
+      uint wt= retime;
+      total_turnaround += Tat;
+      total_waiting    += wt;
+
+      printf("[pid=%d] terminated | TAT=%d | WT=%d\n", pid, Tat, wt);
+    }
   }
+   printf("Average Turnaround Time: %.2f ticks\n", (float)total_turnaround / nprocess);
+   printf("Average Waiting Time: %.2f ticks\n", (float)total_waiting / nprocess);
 
   exit(0);
 }

@@ -41,6 +41,7 @@ int myrand(void);
 int shutdown(void);
 int getptable(int nproc,char* buffer);
 int setsched(int);
+int GetMetrics(int* retime ,int* rutime, int* stime);
 
 // ulib.c
 int stat(const char*, struct stat*);

@@ -7,6 +7,7 @@
 #include "proc.h"
 
 int getptable(int nproc,char* buffer);
+int getProcessMetrics(int*,int*,int*);
 
 uint64
 sys_exit(void)
@@ -157,4 +158,21 @@ sys_setsched(void)
 
   sched_mode = mode;
   return 0;
+}
+
+
+uint64
+sys_GetMetrics(void)
+{
+  uint64 retime_addr, rutime_addr, stime_addr;
+
+  argaddr(0, &retime_addr) ;
+  argaddr(1, &rutime_addr);
+  argaddr(2, &stime_addr) ;
+
+  int *retime = (int*)retime_addr;
+  int *rutime = (int*)rutime_addr;
+  int *stime  = (int*)stime_addr;
+
+return getProcessMetrics(retime, rutime, stime);
 }

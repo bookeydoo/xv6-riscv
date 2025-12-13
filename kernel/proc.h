@@ -113,6 +113,7 @@ struct proc {
   char name[16];               // Process name (debugging)
   uint creation_time;
   uint run_time;
+  uint finish_time;
   int priority;
 };
 
@@ -124,3 +125,5 @@ struct uproc{
   uint64 size;
   char name[20];
 };
+
+int getProcessMetrics(int* retime,int *rutime,int* stime);

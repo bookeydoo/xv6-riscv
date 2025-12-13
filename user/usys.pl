@@ -42,3 +42,4 @@ entry("myrand");
 entry("getptable");
 entry("shutdown");
 entry("setsched");
+entry("GetMetrics");

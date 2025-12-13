@@ -27,3 +27,4 @@
 #define SYS_shutdown 26
 #define SYS_countsyscall  27
 #define SYS_setsched  28
+#define SYS_GetMetrics 29
